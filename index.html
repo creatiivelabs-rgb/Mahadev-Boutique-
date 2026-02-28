@@ -1,0 +1,378 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Mahadev Boutique | Style your lifestyle</title>
+
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;600&display=swap" rel="stylesheet">
+
+<style>
+
+/* ===== GLOBAL ===== */
+*{margin:0;padding:0;box-sizing:border-box;font-family:Poppins,sans-serif}
+body{background:#f6f7fb;color:#222}
+
+/* ===== HEADER ===== */
+header{
+background:#fff;
+text-align:center;
+padding:15px;
+box-shadow:0 2px 10px rgba(0,0,0,.08);
+position:sticky;
+top:0;
+z-index:10;
+}
+header h1{color:#8e44ad;font-size:22px}
+.tag{font-size:13px;color:#777}
+
+/* ===== FILTERS ===== */
+.filters{
+display:flex;
+gap:8px;
+overflow:auto;
+padding:10px;
+background:#fff;
+}
+.filters button{
+border:none;
+background:#eee;
+padding:8px 14px;
+border-radius:20px;
+cursor:pointer;
+}
+.filters button.active{
+background:#8e44ad;
+color:#fff;
+}
+
+/* ===== PRODUCT GRID ===== */
+.products{
+display:grid;
+grid-template-columns:repeat(auto-fit,minmax(160px,1fr));
+gap:15px;
+padding:15px;
+}
+
+.card{
+background:#fff;
+border-radius:12px;
+overflow:hidden;
+box-shadow:0 3px 12px rgba(0,0,0,.08);
+transition:.25s;
+}
+.card:hover{transform:translateY(-4px)}
+
+.card img{
+width:100%;
+height:190px;
+object-fit:cover;
+}
+
+.info{padding:10px}
+.price{color:#8e44ad;font-weight:600;margin:5px 0}
+
+.add{
+width:100%;
+border:none;
+background:#8e44ad;
+color:#fff;
+padding:8px;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* ===== CART BUTTON ===== */
+.cart-btn{
+position:fixed;
+bottom:20px;
+right:20px;
+width:60px;
+height:60px;
+border-radius:50%;
+background:#8e44ad;
+color:#fff;
+display:flex;
+align-items:center;
+justify-content:center;
+font-size:22px;
+cursor:pointer;
+box-shadow:0 5px 18px rgba(0,0,0,.3);
+}
+
+.count{
+position:absolute;
+top:-5px;
+right:-5px;
+background:red;
+color:#fff;
+font-size:12px;
+padding:3px 7px;
+border-radius:50%;
+}
+
+/* ===== MODAL ===== */
+.modal{
+position:fixed;
+top:0;
+left:0;
+width:100%;
+height:100%;
+background:rgba(0,0,0,.5);
+display:none;
+align-items:center;
+justify-content:center;
+z-index:20;
+}
+
+.modal-box{
+background:#fff;
+width:95%;
+max-height:90%;
+overflow:auto;
+border-radius:12px;
+padding:15px;
+}
+
+/* ===== CART ITEMS ===== */
+.cart-item{
+display:flex;
+justify-content:space-between;
+border-bottom:1px solid #eee;
+margin:10px 0;
+padding-bottom:8px;
+}
+
+.qty button{
+margin:0 4px;
+padding:2px 8px;
+}
+
+/* ===== FORM ===== */
+input,textarea{
+width:100%;
+padding:10px;
+margin:8px 0;
+border:1px solid #ccc;
+border-radius:6px;
+}
+
+.submit{
+background:#8e44ad;
+color:#fff;
+border:none;
+padding:10px;
+width:100%;
+border-radius:6px;
+cursor:pointer;
+}
+
+/* ===== WHATSAPP ===== */
+.whatsapp{
+position:fixed;
+bottom:95px;
+right:20px;
+background:#25D366;
+color:white;
+padding:12px 15px;
+border-radius:30px;
+text-decoration:none;
+font-size:14px;
+box-shadow:0 4px 12px rgba(0,0,0,.3);
+}
+
+</style>
+</head>
+
+<body>
+
+<header>
+<h1>Mahadev Boutique</h1>
+<div class="tag">Style your lifestyle • Roorkee Uttarakhand</div>
+</header>
+
+<div class="filters" id="filters"></div>
+<div class="products" id="grid"></div>
+
+<div class="cart-btn" onclick="openCart()">
+🛒<span class="count" id="count">0</span>
+</div>
+
+<a class="whatsapp" target="_blank"
+href="https://wa.me/919758781272">
+Chat on WhatsApp
+</a>
+
+<!-- CART -->
+<div class="modal" id="cartModal">
+<div class="modal-box">
+<h3>Your Cart</h3>
+<div id="cartItems"></div>
+<h4 id="total"></h4>
+<button class="submit" onclick="openCheckout()">Place Order</button>
+</div>
+</div>
+
+<!-- CHECKOUT -->
+<div class="modal" id="checkoutModal">
+<div class="modal-box">
+
+<form id="orderForm"
+action="https://formspree.io/f/xqedjnjw"
+method="POST">
+
+<h3>Customer Details</h3>
+
+<input required name="Name" placeholder="Customer Name">
+<input required name="Phone" placeholder="Phone Number">
+<textarea required name="Address" placeholder="Delivery Address"></textarea>
+<textarea name="Instructions" placeholder="Special Instructions"></textarea>
+
+<input type="hidden" name="Order Summary" id="summary">
+
+<button class="submit">Submit Order</button>
+
+</form>
+
+<div id="success" style="display:none;text-align:center">
+<h3>Order placed!</h3>
+<p>Mahadev Boutique will contact you on WhatsApp to confirm.</p>
+<a href="https://wa.me/919758781272">Message on WhatsApp</a>
+</div>
+
+</div>
+</div>
+
+<script>
+
+/* ===== PRODUCTS ===== */
+const products=[
+{name:"Designer Suit",price:500,category:"Clothes",img:"https://i.ibb.co/mCgMgc4j/IMG20260224080250.jpg",desc:"Elegant party suit"},
+{name:"Wedding Suit",price:500,category:"Clothes",img:"https://i.ibb.co/mCgMgc4j/IMG20260224080250.jpg",desc:"Perfect wedding wear"},
+{name:"Printed Suit",price:500,category:"Clothes",img:"https://i.ibb.co/mCgMgc4j/IMG20260224080250.jpg",desc:"Daily comfort design"},
+{name:"Cotton Suit",price:500,category:"Clothes",img:"https://i.ibb.co/mCgMgc4j/IMG20260224080250.jpg",desc:"Soft breathable cotton"},
+{name:"Festive Suit",price:500,category:"Clothes",img:"https://i.ibb.co/mCgMgc4j/IMG20260224080250.jpg",desc:"Festive collection"},
+{name:"Stylish Suit",price:500,category:"Clothes",img:"https://i.ibb.co/mCgMgc4j/IMG20260224080250.jpg",desc:"Modern boutique style"},
+{name:"Party Suit",price:500,category:"Clothes",img:"https://i.ibb.co/mCgMgc4j/IMG20260224080250.jpg",desc:"Premium party wear"},
+{name:"Casual Suit",price:500,category:"Clothes",img:"https://i.ibb.co/mCgMgc4j/IMG20260224080250.jpg",desc:"Everyday fashion"}
+];
+
+let cart=JSON.parse(localStorage.getItem("cart"))||{};
+
+/* FILTERS */
+const cats=["All",...new Set(products.map(p=>p.category))];
+const filterDiv=document.getElementById("filters");
+
+cats.forEach(c=>{
+let b=document.createElement("button");
+b.textContent=c;
+b.onclick=()=>render(c);
+filterDiv.appendChild(b);
+});
+
+/* PRODUCTS */
+function render(cat="All"){
+const grid=document.getElementById("grid");
+grid.innerHTML="";
+products.filter(p=>cat==="All"||p.category===cat)
+.forEach(p=>{
+grid.innerHTML+=`
+<div class="card">
+<img loading="lazy" src="${p.img}" alt="${p.name}">
+<div class="info">
+<h4>${p.name}</h4>
+<div class="price">₹${p.price}</div>
+<p>${p.desc}</p>
+<button class="add" onclick="add('${p.name}')">Add to Cart</button>
+</div>
+</div>`;
+});
+}
+render();
+
+/* CART */
+function add(name){
+cart[name]=(cart[name]||0)+1;
+save();
+}
+
+function save(){
+localStorage.setItem("cart",JSON.stringify(cart));
+updateCount();
+}
+
+function updateCount(){
+document.getElementById("count").innerText=
+Object.values(cart).reduce((a,b)=>a+b,0);
+}
+updateCount();
+
+function openCart(){
+document.getElementById("cartModal").style.display="flex";
+drawCart();
+}
+
+function drawCart(){
+let div=document.getElementById("cartItems");
+div.innerHTML="";
+let total=0;
+
+for(let n in cart){
+let p=products.find(x=>x.name===n);
+let qty=cart[n];
+let sub=qty*p.price;
+total+=sub;
+
+div.innerHTML+=`
+<div class="cart-item">
+<div>${n}<br>₹${p.price} x ${qty}</div>
+<div class="qty">
+<button onclick="chg('${n}',-1)">-</button>
+<button onclick="chg('${n}',1)">+</button>
+<button onclick="del('${n}')">x</button>
+</div>
+</div>`;
+}
+
+document.getElementById("total").innerText="Total: ₹"+total;
+}
+
+function chg(n,v){
+cart[n]+=v;
+if(cart[n]<=0) delete cart[n];
+save();drawCart();
+}
+function del(n){
+delete cart[n];
+save();drawCart();
+}
+
+/* CHECKOUT */
+function openCheckout(){
+document.getElementById("checkoutModal").style.display="flex";
+
+let text="";
+let total=0;
+
+for(let n in cart){
+let p=products.find(x=>x.name===n);
+let q=cart[n];
+text+=`${n} — Qty:${q} — ₹${q*p.price}\n`;
+total+=q*p.price;
+}
+
+text+=`\nGrand Total: ₹${total}`;
+document.getElementById("summary").value=text;
+}
+
+/* SUCCESS */
+document.getElementById("orderForm").addEventListener("submit",()=>{
+localStorage.removeItem("cart");
+cart={};
+});
+
+</script>
+
+</body>
+  </html>
